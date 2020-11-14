@@ -6,6 +6,10 @@ def setin(msg, userid):
         r_msg = '予約対象のボスは数値1~5で指定してください'
         return r_msg
 
+    #コメントがない場合ダミーテキストを入れる
+    if len(msg) == 2:
+        msg.append('-')
+
     wb = openpyxl.open('./datasheet.xlsx')
     sh = wb['メンバーリスト']
 
@@ -13,13 +17,13 @@ def setin(msg, userid):
         if sh.cell(row=2+i, column=2).value == str(userid):
             #空いてる予約場所にいれていく
             if sh.cell(row=2+i, column=3).value == None:
-                sh.cell(row=2+i, column=3).value = int(msg[1])
+                sh.cell(row=2+i, column=3).value = msg[1]+','+msg[2]
 
             elif sh.cell(row=2+i, column=4).value == None:
-                sh.cell(row=2+i, column=4).value = int(msg[1])
+                sh.cell(row=2+i, column=4).value = msg[1]+','+msg[2]
 
             elif sh.cell(row=2+i, column=5).value == None:
-                sh.cell(row=2+i, column=5).value = int(msg[1])
+                sh.cell(row=2+i, column=5).value = msg[1]+','+msg[2]
             else:
                 r_msg = '3枠予約済みです．予約の取り消し後に再実行してください．'
                 return r_msg
@@ -109,27 +113,31 @@ def atk(userid):
             
             #3凸済み
             if sh.cell(row=2+i, column=6).value == 0:
-                r_msg = '未消化の凸を確認できませんでした．\nタスキル等により修正が必要な場合は.fixをお使いください'
+                r_msg = '未消化の凸を確認できませんでした．\
+                    \nタスキル等により修正が必要な場合は.fixをお使いください'
                 return r_msg ,2
             
             #予約と一致して凸
-            if sh.cell(row=2+i, column=3).value == sh['J1'].value:
+            r_msg = '予約の消化として処理しました\n'
+            if str(sh.cell(row=2+i, column=3).value).split(',')[0] == sh['J1'].value:
                 sh.cell(row=2+i, column=3).value = None
                 sh.cell(row=2+i, column=6).value -= 1
 
-            elif sh.cell(row=2+i, column=4).value == sh['J1'].value:
+            elif str(sh.cell(row=2+i, column=4).value).split(',')[0] == sh['J1'].value:
                 sh.cell(row=2+i, column=4).value = None
                 sh.cell(row=2+i, column=6).value -= 1
 
-            elif sh.cell(row=2+i, column=5).value == sh['J1'].value:
+            elif str(sh.cell(row=2+i, column=5).value).split(',')[0] == sh['J1'].value:
                 sh.cell(row=2+i, column=5).value = None
                 sh.cell(row=2+i, column=6).value -= 1
             
+            #予約以外
             else:
+                r_msg = ''
                 sh.cell(row=2+i, column=6).value -= 1
             
             wb.save('./datasheet.xlsx')
-            r_msg = '残り' + str(sh.cell(row=2+i, column=6).value) + '凸です'
+            r_msg += '残り' + str(sh.cell(row=2+i, column=6).value) + '凸です'
             return r_msg, 1
         
     #メンバーが見つからない場合
@@ -199,7 +207,7 @@ def boss_set(num):
         sh = wb['メンバーリスト']
 
         #ボスの値を変更
-        sh['J9'].value = num
+        sh['J1'].value = num
         wb.save('./datasheet.xlsx')
 
         r_msg = '現在のボスを' + str(num) + 'に変更しました'

@@ -5,43 +5,55 @@ import openpyxl
 def reserve():
     wb = openpyxl.open('./datasheet.xlsx', data_only=True)
     sh = wb['メンバーリスト']
+    rev_list = ['', '', '', '', '']
 
-    #総数，型の宣言
-    one = [0, '→']
-    two = [0, '→']
-    thr = [0, '→']
-    fou = [0, '→']
-    fiv = [0, '→']
+    #予約者の把握
+    for y in range(2, 31):
+        for x in range(3, 6):
+            cell_data = str(sh.cell(row=y, column=x).value).split(',')
+            #なんか予約があったら…
+            if not cell_data == 'None':
+                if cell_data[0] == '1':
+                    rev_list[0] += '\n' + sh.cell(row=y, column=1).value + \
+                        '(' + cell_data[1] + ')'
 
-    #予約に番号が入っていたら追加
-    for i in range(30):
-        #範囲の値を取得
-        for reserve_list_cell in sh['C'+str(i+2)+':E'+str(i+2)]:
-            reserve_list = []
-            for j in range(len(reserve_list_cell)):
-                reserve_list.append(reserve_list_cell[j].value)
-        
-        if 1 in reserve_list:
-            one[0] += 1
-            one[1] += str(sh.cell(row=2+i, column=1).value) + ', '
-        
-        if 2 in reserve_list:
-            two[0] += 1
-            two[1] += str(sh.cell(row=2+i, column=1).value) + ', '
-        
-        if 3 in reserve_list:
-            thr[0] += 1
-            thr[1] += str(sh.cell(row=2+i, column=1).value) + ', '
-        
-        if 4 in reserve_list:
-            fou[0] += 1
-            fou[1] += str(sh.cell(row=2+i, column=1).value) + ', '
-        
-        if 5 in reserve_list:
-            fiv[0] += 1
-            fiv[1] += str(sh.cell(row=2+i, column=1).value) + ', '
+                elif cell_data[0] == '2':
+                    rev_list[1] += '\n' + sh.cell(row=y, column=1).value + \
+                        '(' + cell_data[1] + ')'
+                
+                elif cell_data[0] == '3':
+                    rev_list[2] += '\n' + sh.cell(row=y, column=1).value + \
+                        '(' + cell_data[1] + ')'
+                
+                elif cell_data[0] == '4':
+                    rev_list[3] += '\n' + sh.cell(row=y, column=1).value + \
+                        '(' + cell_data[1] + ')'
+                
+                elif cell_data[0] == '5':
+                    rev_list[4] += '\n' + sh.cell(row=y, column=1).value + \
+                        '(' + cell_data[1] + ')'
     
-    return one, two, thr, fou, fiv
+    #持越し者の把握
+    for i in range(2, 31):
+        co_num = sh.cell(row=i, column=7).value
+        if not co_num is None:
+            if co_num == 1:
+                rev_list[0] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
+            if co_num == 2:
+                rev_list[1] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
+            if co_num == 3:
+                rev_list[2] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
+            if co_num == 4:
+                rev_list[3] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
+            if co_num == 5:
+                rev_list[4] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
+    
+    #空白の把握
+    for i in range(5):
+        if rev_list[i] == '':
+            rev_list[i] == '予約なし'
+
+    return rev_list
 
 def remaing():
     wb = openpyxl.open('./datasheet.xlsx')
@@ -63,7 +75,7 @@ def remaing():
 
     for i in range(30):
         if sh.cell(row=i+2, column=6).value == 2:
-            s_msg += str(sh.cell(row=i+2, column=1).value) + '@2'
+            msg += str(sh.cell(row=i+2, column=1).value) + '@2'
             rem += 2
 
             if not sh.cell(row=i+2, column=7).value is None:
@@ -73,7 +85,7 @@ def remaing():
     
     for i in range(30):
         if sh.cell(row=i+2, column=6).value == 1:
-            f_msg += str(sh.cell(row=i+2, column=1).value) + '@1'
+            msg += str(sh.cell(row=i+2, column=1).value) + '@1'
             rem +- 1
         
             if not sh.cell(row=i+2, column=7).value is None:
@@ -83,12 +95,11 @@ def remaing():
     
     for i in range(30):
         if sh.cell(row=i+2, column=6).value == 0:
-            f_msg += str(sh.cell(row=i+2, column=1).value) + '@0'
-        
             if not sh.cell(row=i+2, column=7).value is None:
+                msg += str(sh.cell(row=i+2, column=1).value) + '@0'
                 msg += '+co' + str(sh.cell(row=i+2, column=7).value)
                 cao += 1
-            msg += '\n'
+                msg += '\n'
     
     msg += '\n全体で' + str(rem) + '凸残っています'
     msg += '\n持越しが' + str(cao) + '件残っています'
@@ -113,8 +124,10 @@ def endgame():
         remain_sum += sh.cell(row=i+2, column=6).value
     
     if remain_sum > 45:
-        wb.close()
         return False
+    
+    #残凸のコマンドの呼び出し
+    r_msg = remaing()
     
     #各種数値をリセット
     for i in range(30):
@@ -126,7 +139,5 @@ def endgame():
 
     #保存，返す
     wb.save('./datasheet.xlsx')
-    r_msg = '本日の凸漏れ数は'+str(remain_sum)+'件です'
-
     return r_msg
     
