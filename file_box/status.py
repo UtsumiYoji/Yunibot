@@ -5,7 +5,7 @@ import openpyxl
 def reserve():
     wb = openpyxl.open('./datasheet.xlsx', data_only=True)
     sh = wb['メンバーリスト']
-    rev_list = ['', '', '', '', '']
+    rev_list = [''] * 5
 
     #予約者の把握
     for y in range(2, 31):
@@ -50,8 +50,8 @@ def reserve():
     
     #空白の把握
     for i in range(5):
-        if rev_list[i] == '':
-            rev_list[i] == '予約なし'
+        if len(rev_list[i]) == 0:
+            rev_list[i] += '予約なし'
 
     return rev_list
 

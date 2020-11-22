@@ -49,13 +49,13 @@ def delete(msg, userid):
     for i in range(30):
         if sh.cell(row=2+i, column=2).value == str(userid):
             #一致する予約場所を消す
-            if sh.cell(row=2+i, column=3).value == int(msg[1]):
+            if str(sh.cell(row=2+i, column=3).value).split(',')[0] == msg[1]:
                 sh.cell(row=2+i, column=3).value = None
 
-            elif sh.cell(row=2+i, column=4).value == int(msg[1]):
+            elif str(sh.cell(row=2+i, column=4).value).split(',')[0] == msg[1]:
                 sh.cell(row=2+i, column=4).value = None
 
-            elif sh.cell(row=2+i, column=5).value == int(msg[1]):
+            elif str(sh.cell(row=2+i, column=5).value).split(',')[0] == msg[1]:
                 sh.cell(row=2+i, column=5).value = None
             else:
                 r_msg = str(msg[1]) + 'ボスへの予約が見つかりませんでした'
