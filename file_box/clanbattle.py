@@ -119,15 +119,15 @@ def atk(userid):
             
             #予約と一致して凸
             r_msg = '予約の消化として処理しました\n'
-            if str(sh.cell(row=2+i, column=3).value).split(',')[0] == sh['J1'].value:
+            if str(sh.cell(row=2+i, column=3).value).split(',')[0] == str(sh['J1'].value):
                 sh.cell(row=2+i, column=3).value = None
                 sh.cell(row=2+i, column=6).value -= 1
 
-            elif str(sh.cell(row=2+i, column=4).value).split(',')[0] == sh['J1'].value:
+            elif str(sh.cell(row=2+i, column=4).value).split(',')[0] == str(sh['J1'].value):
                 sh.cell(row=2+i, column=4).value = None
                 sh.cell(row=2+i, column=6).value -= 1
 
-            elif str(sh.cell(row=2+i, column=5).value).split(',')[0] == sh['J1'].value:
+            elif str(sh.cell(row=2+i, column=5).value).split(',')[0] == str(sh['J1'].value):
                 sh.cell(row=2+i, column=5).value = None
                 sh.cell(row=2+i, column=6).value -= 1
             
@@ -183,10 +183,10 @@ def boss_change():
         for reserve_list_cell in sh['C'+str(i+2)+':E'+str(i+2)]:
             reserve_list = []
             for j in range(len(reserve_list_cell)):
-                reserve_list.append(reserve_list_cell[j].value)
+                reserve_list.append(str(reserve_list_cell[j].value).split(',')[0])
 
         #予約リストの中に含まれていたら…
-        if sh['J1'].value in reserve_list:
+        if str(sh['J1'].value) in reserve_list:
             msg += '<@'+str(sh.cell(row=2+i, column=2).value)+'> '
     
     #持越し登録者の確認

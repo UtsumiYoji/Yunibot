@@ -48,7 +48,7 @@ async def loop():
 #起動時
 @client.event
 async def on_ready():
-    await client.change_presence(activity=discord.Game(name='Running on Ver.1.1.1.0'))
+    await client.change_presence(activity=discord.Game(name='Running on Ver.1.1.2.0'))
     print('Login')
     await loop()
 
