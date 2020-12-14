@@ -36,17 +36,20 @@ def reserve():
     #持越し者の把握
     for i in range(2, 31):
         co_num = sh.cell(row=i, column=7).value
+        co_msg = str(sh.cell(row=i, column=8).value)
+        if co_msg == 'None':
+            co_msg = '-'
         if not co_num is None:
             if co_num == 1:
-                rev_list[0] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
-            if co_num == 2:
-                rev_list[1] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
-            if co_num == 3:
-                rev_list[2] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
-            if co_num == 4:
-                rev_list[3] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
-            if co_num == 5:
-                rev_list[4] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
+                rev_list[0] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し, ' + co_msg + ')' 
+            elif co_num == 2:
+                rev_list[1] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し, ' + co_msg + ')'
+            elif co_num == 3:
+                rev_list[2] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し, ' + co_msg + ')'
+            elif co_num == 4:
+                rev_list[3] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し, ' + co_msg + ')'
+            elif co_num == 5:
+                rev_list[4] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し, ' + co_msg + ')'
     
     #空白の把握
     for i in range(5):
@@ -127,7 +130,7 @@ def endgame():
         return False
     
     #残凸のコマンドの呼び出し
-    r_msg = remaing()
+    r_msg = remaing()[0]
     
     #各種数値をリセット
     for i in range(30):
@@ -136,6 +139,7 @@ def endgame():
         sh.cell(row=i+2, column=5).value = None
         sh.cell(row=i+2, column=6).value = 3
         sh.cell(row=i+2, column=7).value = None
+        sh.cell(row=i+2, column=8).value = None
 
     #保存，返す
     wb.save('./datasheet.xlsx')

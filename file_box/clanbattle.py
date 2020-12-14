@@ -86,6 +86,7 @@ def carry_over(msg, userid):
                 r_msg = '持越しを保持していない状態として登録しました'
             else:
                 sh.cell(row=2+i, column=7).value = int(msg[1])
+                sh.cell(row=2+i, column=8).value = int(msg[2])
                 r_msg = str(msg[1]) + 'ボスへ持越し登録を行いました．\n対象のボスが来たら通知します．'
 
             #予約の完了
@@ -104,8 +105,9 @@ def atk(userid):
         #idが一致する人の所の残凸を減らす，予約，持越し登録されてたら削除
         if sh.cell(row=2+i, column=2).value == str(userid):
             #持越し
-            if sh.cell(row=2+i, column=7).value == sh['J1'].value:
+            if not sh.cell(row=2+i, column=7).value is None:
                 sh.cell(row=2+i, column=7).value = None
+                sh.cell(row=2+i, column=8).value = None
                 wb.save('./datasheet.xlsx')
 
                 r_msg = '持越しの消費として処理しました'

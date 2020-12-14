@@ -39,7 +39,8 @@ async def loop():
         result = status.endgame()
         if not result is False:
             channel = client.get_channel(772743357528801341)
-            await channel.send(result)
+            embed = discord.Embed(title='凸漏れ通達', description=result, color=0xff0000)
+            await channel.send(embed=embed)
             channel = client.get_channel(764803209066971156)
             await channel.send('クラバトの日付が変わりました！\n前日に行った予約状況等は全て初期化されています')
 
@@ -48,7 +49,7 @@ async def loop():
 #起動時
 @client.event
 async def on_ready():
-    await client.change_presence(activity=discord.Game(name='Running on Ver.1.1.2.0'))
+    await client.change_presence(activity=discord.Game(name='Running on Ver.1.2.0.0'))
     print('Login')
     await loop()
 
