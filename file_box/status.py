@@ -36,20 +36,16 @@ def reserve():
     #持越し者の把握
     for i in range(2, 31):
         co_num = sh.cell(row=i, column=7).value
-        co_msg = str(sh.cell(row=i, column=8).value)
-        if co_msg == 'None':
-            co_msg = '-'
-        if not co_num is None:
-            if co_num == 1:
-                rev_list[0] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し, ' + co_msg + ')' 
-            elif co_num == 2:
-                rev_list[1] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し, ' + co_msg + ')'
-            elif co_num == 3:
-                rev_list[2] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し, ' + co_msg + ')'
-            elif co_num == 4:
-                rev_list[3] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し, ' + co_msg + ')'
-            elif co_num == 5:
-                rev_list[4] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し, ' + co_msg + ')'
+        if co_num == 1:
+            rev_list[0] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
+        elif co_num == 2:
+            rev_list[1] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
+        elif co_num == 3:
+            rev_list[2] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
+        elif co_num == 4:
+            rev_list[3] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
+        elif co_num == 5:
+            rev_list[4] += '\n' + sh.cell(row=i, column=1).value + '(持ち越し)'
     
     #空白の把握
     for i in range(5):
@@ -57,6 +53,26 @@ def reserve():
             rev_list[i] += '予約なし'
 
     return rev_list
+
+def carry_over():
+    wb = openpyxl.open('./datasheet.xlsx')
+    sh = wb['メンバーリスト']
+
+    r_msg = ''
+
+    for i in range(2, 31):
+        co_num = str(sh.cell(row=i, column=7).value)
+
+        #持越しが登録されてたら
+        if not co_num == 'None':
+            comm = sh.cell(row=i, column=8).value.split(',')
+            r_msg += sh.cell(row=i, column=1).value+'('+co_num + comm[1] + comm[0] + ')\n' + comm[2] + '\n\n'
+    
+    #持越しが一件もない場合
+    if not 'r_msg' in locals():
+        r_msg = "持越しなし"
+    
+    return r_msg
 
 def remaing():
     wb = openpyxl.open('./datasheet.xlsx')
@@ -89,7 +105,7 @@ def remaing():
     for i in range(30):
         if sh.cell(row=i+2, column=6).value == 1:
             msg += str(sh.cell(row=i+2, column=1).value) + '@1'
-            rem +- 1
+            rem += 1
         
             if not sh.cell(row=i+2, column=7).value is None:
                 msg += '+co' + str(sh.cell(row=i+2, column=7).value)
@@ -121,16 +137,10 @@ def endgame():
     wb = openpyxl.open('./datasheet.xlsx')
     sh = wb['メンバーリスト']
 
-    #合計45凸以上記録されていたらクラバト中と認識
+    #残凸数を記録しておく
     remain_sum = 0
     for i in range(30):
         remain_sum += sh.cell(row=i+2, column=6).value
-    
-    if remain_sum > 45:
-        return False
-    
-    #残凸のコマンドの呼び出し
-    r_msg = remaing()[0]
     
     #各種数値をリセット
     for i in range(30):
@@ -141,7 +151,14 @@ def endgame():
         sh.cell(row=i+2, column=7).value = None
         sh.cell(row=i+2, column=8).value = None
 
-    #保存，返す
     wb.save('./datasheet.xlsx')
+
+    #45凸以上あったらメッセージの送信
+    if remain_sum > 45:
+        return False
+    
+    #残凸のコマンドの呼び出し
+    r_msg = remaing()[0]
+
     return r_msg
     

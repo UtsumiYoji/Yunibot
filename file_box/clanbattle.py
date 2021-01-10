@@ -85,8 +85,45 @@ def carry_over(msg, userid):
                 sh.cell(row=2+i, column=7).value = None
                 r_msg = '持越しを保持していない状態として登録しました'
             else:
+                #情報が足りてるか
+                if len(msg) < 4:
+                    r_msg = "秒数，編成の情報がありません"
+                    return r_msg
+
+                #秒数の認識
+                time = msg[2]
+                #数字が入力されているか
+                try:
+                    time = int(time)
+                    #有効な範囲内か
+                    if not (20 < time < 91):
+                        r_msg = "持越し秒数は21~90秒の間で入力して下さい．"
+                        return r_msg
+                except:
+                    r_msg = '持越し秒数を認識出来ませんでした．数値のみで入力してください．'
+                    return r_msg
+
+                #編成の認識
+                if "物理" in msg[3]:
+                    team = "物理"
+                elif "魔法" in msg[3]:
+                    team = "魔法"
+                elif "ニャル" in msg[3]:
+                    team = "ニャル"
+                else:
+                    r_msg = "編成を認識出来ませんでした．\n物理・魔法・ニャルのいずれか入力してください．"
+                    return r_msg
+                
+                #メッセージ無しの場合ダミーテキストを挿入
+                if len(msg) == 4:
+                    msg.append('-')
+                
+                #持越しボスの登録
                 sh.cell(row=2+i, column=7).value = int(msg[1])
-                sh.cell(row=2+i, column=8).value = int(msg[2])
+
+                #秒数，編成，コメントの書き込み
+                sh.cell(row=2+i, column=8).value = msg[2] + 's,' + team + ',' + msg[4]
+
                 r_msg = str(msg[1]) + 'ボスへ持越し登録を行いました．\n対象のボスが来たら通知します．'
 
             #予約の完了

@@ -19,8 +19,7 @@ async def reload_status():
 
     #残凸メッセージの投稿
     res = status.remaing()
-    embed = discord.Embed(title='凸進捗状況')
-    embed.add_field(name='現在：'+res[1]+'ボス', value=res[0])
+    embed = discord.Embed(title='凸進捗状況　現在：'+res[1]+'ボス',description=res[0])
     await channel.send(embed=embed)
 
     #予約メッセージの投稿
@@ -31,6 +30,11 @@ async def reload_status():
     embed.add_field(name='3ボス', value=res[2], inline=False)
     embed.add_field(name='4ボス', value=res[3], inline=False)
     embed.add_field(name='5ボス', value=res[4], inline=False)
+    await channel.send(embed=embed)
+
+    #持越しメッセージの投稿
+    res = status.carry_over()
+    embed = discord.Embed(title='持越し状況',description=res)
     await channel.send(embed=embed)
 
 #ループ処理
@@ -49,7 +53,7 @@ async def loop():
 #起動時
 @client.event
 async def on_ready():
-    await client.change_presence(activity=discord.Game(name='Running on Ver.1.2.0.0'))
+    await client.change_presence(activity=discord.Game(name='Running on Ver.1.3.0.0'))
     print('Login')
     await loop()
 
