@@ -8,7 +8,7 @@ def reserve():
     rev_list = [''] * 5
 
     #予約者の把握
-    for y in range(2, 31):
+    for y in range(2, 32):
         for x in range(3, 6):
             cell_data = str(sh.cell(row=y, column=x).value).split(',')
             #なんか予約があったら…
@@ -142,6 +142,9 @@ def endgame():
     for i in range(30):
         remain_sum += sh.cell(row=i+2, column=6).value
     
+    #残凸のコマンドの呼び出し
+    r_msg = remaing()[0]
+
     #各種数値をリセット
     for i in range(30):
         sh.cell(row=i+2, column=3).value = None
@@ -156,9 +159,6 @@ def endgame():
     #45凸以上あったらメッセージの送信
     if remain_sum > 45:
         return False
-    
-    #残凸のコマンドの呼び出し
-    r_msg = remaing()[0]
 
     return r_msg
     
