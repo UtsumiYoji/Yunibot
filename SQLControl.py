@@ -25,15 +25,10 @@ class SQLControl:
         #凸数管理テーブル
         self.cur.execute(
             "create table TotsuStatus(\
-                Memberid integer,\
-                RemainTotsu integer default 3,\
+                Memberid integer primary key autoincrement,\
+                RemainTotsu integer,\
                 NowTotsu integer default 0)"
-        )
-        #30人分登録
-        for i in range(30):
-            self.cur.execute(
-                "insert into TotsuStatus(Memberid) values("+str(i+1)+")"
-            )
+        )            
 
         #予約登録テーブル
         self.cur.execute(
@@ -69,29 +64,33 @@ class SQLControl:
     #メンバーの追加
     def AddMember(self, name, discord):
         self.cur.execute(
-            "insert into Member(name, discord) values('"+name+"','"+discord+"')"
+            "insert into Member(name, discord) values('"+name+"','"+str(discord)+"')"
         )
-        #インクリメント値のリセット
+
         self.cur.execute(
-            "delete from sqlite_sequence where name='Member'"
+            "insert into TotsuStatus(RemainTotsu) values(3)"
         )
     
     #メンバーに管理者権限を付与
-    def UpdateAdmin(self, discord):
+    def UpdateAdmin(self, Memberid):
         self.cur.execute(
-            "update Member set admin = 1 where discord =" + str(discord)
+            "update Member set admin = 1 where Memberid =" + str(Memberid)
         )
     
     #メンバーの削除
-    def DeleteMember(self, discord):
+    def DeleteMember(self, Memberid):
         self.cur.execute(
-            "delete from Member where discord =" + str(discord)
+            "delete from Member where Memberid =" + str(Memberid)
         )
+        self.cur.execute(
+            "delete from TotsuStatus where Memberid =" + str(Memberid)
+        )
+        self.cur.execute
 
     #メンバーリストの取得
     def MemberList(self):
         self.cur.execute(
-            "select * form Member"
+            "select * from Member"
         )
         return self.cur.fetchall()
     
@@ -176,3 +175,7 @@ class SQLControl:
             "select * from Laps"
         )
         return self.cur.fetchall()[0][1]
+
+ins = SQLControl()
+ins.AddMember('boku', 90)
+print(ins.MemberList())
