@@ -176,9 +176,3 @@ class SQLControl:
             "select * from Laps"
         )
         return self.cur.fetchall()[0][1]
-
-ins = SQLControl()
-TotsuStatus = ins.TotsuStatus()
-
-for i in range(len(TotsuStatus)):
-    print(TotsuStatus[i])
