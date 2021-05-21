@@ -18,7 +18,8 @@ class SQLControl:
         self.cur.execute(
             "create table Member(\
                 Memberid integer primary key autoincrement,\
-                name string, discord string,\
+                name string, \
+                discord string,\
                 admin integer default 0)"
         )
 
@@ -95,9 +96,9 @@ class SQLControl:
         return self.cur.fetchall()
     
     #本線開始状態への変更
-    def atk(self, Memberid):
+    def atk(self, Memberid, BossNo):
         self.cur.execute(
-            "update TotsuStatus set NowTotsu = 1 where Memberid =" + str(Memberid)
+            "update TotsuStatus set NowTotsu =" + str(BossNo) + "where Memberid =" + str(Memberid)
         )
     
     #本線終了の宣言
@@ -174,8 +175,4 @@ class SQLControl:
         self.cur.execute(
             "select * from Laps"
         )
-        return self.cur.fetchall()[0][1]
-
-ins = SQLControl()
-ins.AddMember('boku', 90)
-print(ins.MemberList())
+        return int(self.cur.fetchall()[0][1])
