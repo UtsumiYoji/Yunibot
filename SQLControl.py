@@ -109,6 +109,56 @@ class SQLControl:
             "insert into Laps(lap) values(1)"
         )
 
+    #v2.1で追加予定のテーブルを作る関数
+    def MakeBossHPTable(self):
+        #テーブル一覧を取得
+        self.cur.execute(
+            "select name from sqlite_master where type = 'table'"
+        )
+        TableList = [table[0] for table in self.cur.fetchall()]
+        
+        #テーブルがない場合は作成
+        if 'BossHP' not in TableList:
+            self.cur.execute(
+                "create table BossHP(id integer primary key autoincrement, name string, hp integer)"
+            )
+            for i in range(1, 6):
+                self.cur.execute(
+                    "insert into BossHP(name, hp) values('ボス"+str(i)+"', 100)"
+                )
+            print('ボスHPを登録するテーブルが作成されていないため作成しました')
+
+    #ボスの名前を登録する
+    def RegBossName(self, BossNo, name):
+        self.cur.execute(
+            "update BossHP set name = '" + name + "' where id = " + str(BossNo)
+        )
+    
+    #ボスの最大HPを登録する
+    def RegBossHP(self, BossNo, BossHP):
+        self.cur.execute(
+            "update BossHP set hp = " + str(BossHP) + " where id = " + str(BossNo)
+        )
+    
+    #ボスにダメージを与える
+    def DamageBoss(self, BossNo, Damage):
+        self.cur.execute(
+            "update BossHP set hp = hp - " + str(Damage) + " where id = " + str(BossNo)
+        )
+    
+    #ボスのHPを強制的に変更する
+    def FixBossHP(self, BossNo, HP):
+        self.cur.execute(
+            "update BossHP set hp = " + str(HP) + " where id = " + str(BossNo)
+        )
+
+    #各ボスの残HP状況を取得
+    def ViewBossHP(self):
+        self.cur.execute(
+            "select * from BossHP"
+        )
+        return self.cur.fetchall()
+
     #メンバーの追加
     def AddMember(self, name, discord):
         self.cur.execute(
@@ -314,3 +364,5 @@ class SQLControl:
         self.__init__()
 
         return
+
+SQLControl().MakeBossHPTable()

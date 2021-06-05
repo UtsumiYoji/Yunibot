@@ -106,7 +106,7 @@ def StartAtk(discord, BossNo):
     return '本戦開始を受け付けました'
 
 #本戦終了宣言(持越し消化宣言)
-def EndAtk(discord):
+def EndAtk(discord, msg):
     #対象のメンバーを検索
     MemberData = SQLInstance.FindMemberDiscord(discord)
     if len(MemberData) == 0:
@@ -117,6 +117,16 @@ def EndAtk(discord):
     if TotsuData[0][2] == 0:
         return '本戦開始宣言が行われていません'
     
+    #ダメージの認識
+    damege = msg[1].replace('万', '')
+    if damege == '〆':
+        damege = '〆'
+    elif damege.isdecimal():
+        damege = int(damege)
+        #現在の
+    else:
+        return '〆または与えたダメージを入力してください'
+
     #持越しかどうか判定
     CoData = SQLInstance.FindCarryOverMemberid(MemberData[0][0])
     if not len(CoData) == 0:
