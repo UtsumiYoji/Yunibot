@@ -111,7 +111,8 @@ async def on_message(msg):
 
     #本線終了
     elif msg.content.startswith('.end'):
-        Rmsg = BackEndControl.EndAtk(msg.author.id)
+        Smsg = msg.content.split()
+        Rmsg = BackEndControl.EndAtk(msg.author.id, Smsg[1])
         await msg.channel.send(Rmsg)
         await ReloadStatus()
 
