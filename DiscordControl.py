@@ -5,9 +5,9 @@ import BackEndControl
 
 client = discord.Client()
 
-StatusChannel = 
-ReaderChannel = 
-CommandChannel = 
+StatusChannel = 761666636897452103
+ReaderChannel = 772743357528801341
+CommandChannel = 764803209066971156
 
 #予約状況を表示してくれる
 async def ReloadStatus():
@@ -133,4 +133,4 @@ async def on_message(msg):
         Rmsg = BackEndControl.SQLInstance.LapChange(int(Smsg[2]))
         await msg.channel.send('現在の周数を'+str(Rmsg)+'周目に設定しました')
 
-client.run('')
+client.run('NzU2NTM3NDE3NzY2NDA0MTM4.X2TSYA.FwZ1NguDG2V66HSfTw6-naor40I')

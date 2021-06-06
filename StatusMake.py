@@ -60,7 +60,7 @@ def StatusMake():
                 
                 RemainOver += 1
                 RemainTotsu0 += (SQLInstance.MemberList[i][1] + '0')
-                RemainTotsu0 += ('co' + CoData[0][2]) 
+                RemainTotsu0 += ('co' + str(CoData[0][2])) 
                 RemainTotsu0 += '\n'
     
     #凸情報を繋げる
@@ -80,10 +80,10 @@ def StatusMake():
             MemberName = SQLInstance.FindMemberMemberid(SQLInstance.ReservationList[i][1])[0][1]
 
             ReservationMsg += '('+str(SQLInstance.ReservationList[i][0])+')' +\
-                                MemberName + ' '+\
+                                str(MemberName) + ' '+\
                                 str(SQLInstance.ReservationList[i][3]) + '周目' +\
                                 str(SQLInstance.ReservationList[i][2]) + 'ボス' +\
-                                ':'+SQLInstance.ReservationList[i][4] + '\n'
+                                ':'+str(SQLInstance.ReservationList[i][4]) + '\n'
 
     #持越しループ処理
     CarryOverMsg = ''
@@ -96,11 +96,11 @@ def StatusMake():
             MemberName = SQLInstance.FindMemberMemberid(SQLInstance.CarryOver[i][1])[0][1]
 
             CarryOverMsg += '('+str(SQLInstance.CarryOver[i][0])+')' +\
-                            MemberName + ' '+\
+                            str(MemberName) + ' '+\
                             str(SQLInstance.CarryOver[i][2]) + 'ボス ' +\
                             str(SQLInstance.CarryOver[i][3]) + '秒 '+\
-                            SQLInstance.CarryOver[i][4] +\
-                            ':'+SQLInstance.CarryOver[i][5] + '\n'
+                            str(SQLInstance.CarryOver[i][4]) +\
+                            ':'+str(SQLInstance.CarryOver[i][5]) + '\n'
 
     #段階処理，周数処理
     lap = SQLInstance.laps
