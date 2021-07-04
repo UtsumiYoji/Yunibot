@@ -84,7 +84,8 @@ class SQLControl:
                 Reservationid integer primary key autoincrement,\
                 Memberid integer,\
                 ReservationBossNo integer,\
-                lap integer,\
+                damage integer,\
+                party string,\
                 ReservationComment string,\
                 Done integer default 0)"
         )
@@ -97,6 +98,7 @@ class SQLControl:
                 BossNo integer,\
                 RemainSecond integer,\
                 party string,\
+                damage integer,\
                 comment string,\
                 Done integer default 0)"
         )
@@ -109,24 +111,14 @@ class SQLControl:
             "insert into Laps(lap) values(1)"
         )
 
-    #v2.1で追加予定のテーブルを作る関数
-    def MakeBossHPTable(self):
-        #テーブル一覧を取得
+        #ボスHPテーブル
         self.cur.execute(
-            "select name from sqlite_master where type = 'table'"
-        )
-        TableList = [table[0] for table in self.cur.fetchall()]
-        
-        #テーブルがない場合は作成
-        if 'BossHP' not in TableList:
-            self.cur.execute(
-                "create table BossHP(id integer primary key autoincrement, name string, hp integer)"
+                "create table BossHP(id integer primary key autoincrement, name string, hp integer, maxhp integer)"
             )
-            for i in range(1, 6):
-                self.cur.execute(
-                    "insert into BossHP(name, hp) values('ボス"+str(i)+"', 100)"
-                )
-            print('ボスHPを登録するテーブルが作成されていないため作成しました')
+        for i in range(1, 6):
+            self.cur.execute(
+                "insert into BossHP(name, hp) values('ボス"+str(i)+"', 100)"
+            )
 
     #ボスの名前を登録する
     def RegBossName(self, BossNo, name):
@@ -137,7 +129,7 @@ class SQLControl:
     #ボスの最大HPを登録する
     def RegBossHP(self, BossNo, BossHP):
         self.cur.execute(
-            "update BossHP set hp = " + str(BossHP) + " where id = " + str(BossNo)
+            "update BossHP set maxhp = " + str(BossHP) + ", hp = " + str(BossHP) + " where id = " + str(BossNo)
         )
     
     #ボスにダメージを与える
@@ -152,12 +144,32 @@ class SQLControl:
             "update BossHP set hp = " + str(HP) + " where id = " + str(BossNo)
         )
 
+    #特定ボスの残HP状況を取得
+    def SelectBossHP(self, BossNo):
+        self.cur.execute(
+            "select hp from BossHP where id = " + str(BossNo)
+        )
+        return self.cur.fetchall()[0][0]
+    
+    #特定ボスの最大HP状況を取得
+    def SelectBossMaxHP(self, BossNo):
+        self.cur.execute(
+            "select maxhp from BossHP where id = " + str(BossNo)
+        )
+        return self.cur.fetchall()[0][0]
+
     #各ボスの残HP状況を取得
     def ViewBossHP(self):
         self.cur.execute(
             "select * from BossHP"
         )
         return self.cur.fetchall()
+
+    #全ボスのHPをリセット
+    def ResetBossHP(self):
+        self.cur.execute(
+            "update BossHP set hp = maxhp"
+        )
 
     #メンバーの追加
     def AddMember(self, name, discord):
@@ -263,10 +275,10 @@ class SQLControl:
         SQLControl.TotsuStatus = self.cur.fetchall()
     
     #予約の登録
-    def Reservation(self, Memberid, BossNo, lap, comment):
+    def Reservation(self, Memberid, BossNo, party, damage, comment):
         self.cur.execute(
-            "insert into Reservation(Memberid, ReservationBossNo, lap, ReservationComment) \
-                values("+str(Memberid)+","+str(BossNo)+","+str(lap)+",'"+comment+"')"
+            "insert into Reservation(Memberid, ReservationBossNo, party, damage, ReservationComment) \
+                values("+str(Memberid)+","+str(BossNo)+",'"+party+"',"+str(damage)+",'"+comment+"')"
         )
         self.cur.execute(
             "select * from Reservation where Done = 0"
@@ -302,7 +314,7 @@ class SQLControl:
         SQLControl.ReservationList = self.cur.fetchall()
     
     #持ち越しの登録
-    def AddCarryOver(self, Memberid, BossNo, RemainSecond, party, comment):
+    def AddCarryOver(self, Memberid, BossNo, RemainSecond, party, damage, comment):
         self.cur.execute(
             "insert into CarryOver(Memberid, BossNo, RemainSecond, party, comment) \
                 values("+str(Memberid)+","+str(BossNo)+","+str(RemainSecond)+",'"+party+"','"+comment+"')"
@@ -347,7 +359,6 @@ class SQLControl:
             "select * from Laps"
         )
         SQLControl.laps = int(self.cur.fetchall()[0][1])
-        return SQLControl.laps
 
     #リセット
     def EndGame(self):
@@ -365,4 +376,15 @@ class SQLControl:
 
         return
 
-SQLControl().MakeBossHPTable()
+    #予約者一覧のDiscordIDを取得
+    def ReservationDiscordId(self):
+        self.cur.execute(
+            "select Member.discord from \
+            Member inner join Reservation on Member.Memberid = Reservation.Memberid\
+            where Reservation.Done = 0"
+        )
+        result = self.cur.fetchall()
+        result = [i[0] for i in result]
+        return result
+
+SQLControl().MakeTable()

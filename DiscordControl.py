@@ -15,7 +15,8 @@ async def ReloadStatus():
     await channel.purge(limit=None)
 
     StatusData = StatusMake.StatusMake()
-    embed = discord.Embed(title=StatusData[3])
+    embed = discord.Embed(title='Clan Battle Status')
+    embed.add_field(name=StatusData[3], value=StatusData[4], inline=False)
     embed.add_field(name='残凸状況', value=StatusData[0], inline=False)
     embed.add_field(name='予約状況', value=StatusData[1], inline=False)
     embed.add_field(name='持越し状況', value=StatusData[2], inline=False)
@@ -41,7 +42,7 @@ async def loop():
 @client.event
 async def on_ready():
     await client.change_presence(
-        activity=discord.Game(name='Running on Ver.2.0.0.0')
+        activity=discord.Game(name='Running on Ver.2.1.0.0')
     )
     await loop()
 
@@ -52,18 +53,36 @@ async def on_message(msg):
         Smsg = msg.content.split()
         Rmsg = BackEndControl.AddMember(Smsg[1], Smsg[2])
         await msg.channel.send(Rmsg)
+        Rmsg = BackEndControl.AllMember()
+        embed = discord.Embed(title='メンバー一覧')
+        embed.add_field(name='id', value=Rmsg[0])
+        embed.add_field(name='名前', value=Rmsg[1])
+        embed.add_field(name='メンション', value=Rmsg[2])
+        await msg.channel.send(embed=embed)
 
     #メンバーのadminへの昇格
     elif msg.content.startswith('.admin'):
         Smsg = msg.content.split()
         Rmsg = BackEndControl.UpdateAdmin(msg.author.id, Smsg[1])
         await msg.channel.send(Rmsg)
+        Rmsg = BackEndControl.AllMember()
+        embed = discord.Embed(title='メンバー一覧')
+        embed.add_field(name='id', value=Rmsg[0])
+        embed.add_field(name='名前', value=Rmsg[1])
+        embed.add_field(name='メンション', value=Rmsg[2])
+        await msg.channel.send(embed=embed)
 
     #メンバーの除外
     elif msg.content.startswith('.remove'):
         Smsg = msg.content.split()
         Rmsg = BackEndControl.RemoveMember(Smsg[1])
         await msg.channel.send(Rmsg)
+        Rmsg = BackEndControl.AllMember()
+        embed = discord.Embed(title='メンバー一覧')
+        embed.add_field(name='id', value=Rmsg[0])
+        embed.add_field(name='名前', value=Rmsg[1])
+        embed.add_field(name='メンション', value=Rmsg[2])
+        await msg.channel.send(embed=embed)
 
     #メンバー一覧
     elif msg.content == '.allmember':
@@ -77,7 +96,7 @@ async def on_message(msg):
     #凸予約
     elif msg.content.startswith('.set'):
         Smsg = msg.content.split()
-        Rmsg = BackEndControl.Reservation(Smsg[1], Smsg[2], Smsg[3], msg.author.id)
+        Rmsg = BackEndControl.Reservation(Smsg, msg.author.id)
         await msg.channel.send(Rmsg)
         await ReloadStatus()
 
@@ -98,7 +117,7 @@ async def on_message(msg):
     #持越しの登録
     elif msg.content.startswith('.co'):
         Smsg = msg.content.split()
-        Rmsg = BackEndControl.CarryOver(Smsg[1], Smsg[2], Smsg[3], Smsg[4], msg.author.id)
+        Rmsg = BackEndControl.CarryOver(Smsg, msg.author.id)
         await msg.channel.send(Rmsg)
         await ReloadStatus()
     
@@ -112,7 +131,7 @@ async def on_message(msg):
     #本線終了
     elif msg.content.startswith('.end'):
         Smsg = msg.content.split()
-        Rmsg = BackEndControl.EndAtk(msg.author.id, Smsg[1])
+        Rmsg = BackEndControl.EndAtk(msg.author.id, Smsg)
         await msg.channel.send(Rmsg)
         await ReloadStatus()
 
@@ -124,9 +143,9 @@ async def on_message(msg):
 
     #周数の切り替え
     elif msg.content == '.lc':
-        NowLap = int(BackEndControl.SQLInstance.laps)
-        Rmsg = BackEndControl.SQLInstance.LapChange(NowLap+1)
-        await msg.channel.send(str(Rmsg)+'周目に到達しました！')
+        Rmsg = BackEndControl.LapChange()
+        await msg.channel.send(Rmsg)
+        await ReloadStatus()
 
     #周数の強制切替
     elif msg.content.startswith('.lc set'):
@@ -134,4 +153,25 @@ async def on_message(msg):
         Rmsg = BackEndControl.SQLInstance.LapChange(int(Smsg[2]))
         await msg.channel.send('現在の周数を'+str(Rmsg)+'周目に設定しました')
 
-client.run('NzU2NTM3NDE3NzY2NDA0MTM4.X2TSYA.FwZ1NguDG2V66HSfTw6-naor40I')
+    #ボスの名前の登録
+    elif msg.content.startswith('.boss name'):
+        Smsg = msg.content.split()
+        Rmsg = BackEndControl.RegBossName(Smsg)
+        await msg.channel.send(Rmsg)
+        await ReloadStatus()
+
+    #ボスの最大HPの登録
+    elif msg.content.startswith('.boss hp'):
+        Smsg = msg.content.split()
+        Rmsg = BackEndControl.RegBossHP(Smsg)
+        await msg.channel.send(Rmsg)
+        await ReloadStatus()
+
+    #ボスHPの修正
+    elif msg.content.startswith('.hp set'):
+        Smsg = msg.content.split()
+        Rmsg = BackEndControl.FixBossHP(Smsg)
+        await msg.channel.send(Rmsg)
+        await ReloadStatus()
+
+client.run('NzU2NTM3NDE3NzY2NDA0MTM4.X2TSYA.UgqxCj3h8yg-oq4RbtekkgRLMQY')

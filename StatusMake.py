@@ -55,7 +55,7 @@ def StatusMake():
         else:
             if not len(CoData) == 0:
                 #本戦中かどうか判断
-                if SQLInstance.TotsuStatus[i][2] == 0:
+                if not SQLInstance.TotsuStatus[i][2] == 0:
                     RemainTotsu0 += str(SQLInstance.TotsuStatus[i][2]) + '⚔️'
                 
                 RemainOver += 1
@@ -79,11 +79,18 @@ def StatusMake():
             #メンバー名の取得
             MemberName = SQLInstance.FindMemberMemberid(SQLInstance.ReservationList[i][1])[0][1]
 
+            #もしダメージ-1だったらワンパン
+            if SQLInstance.ReservationList[i][3] == -1:
+                damage = 'ワンパン'
+            else:
+                damage = str(SQLInstance.ReservationList[i][3])
+
             ReservationMsg += '('+str(SQLInstance.ReservationList[i][0])+')' +\
                                 str(MemberName) + ' '+\
-                                str(SQLInstance.ReservationList[i][3]) + '周目' +\
                                 str(SQLInstance.ReservationList[i][2]) + 'ボス' +\
-                                ':'+str(SQLInstance.ReservationList[i][4]) + '\n'
+                                SQLInstance.ReservationList[i][4] +\
+                                ' ' + damage +\
+                                ':'+str(SQLInstance.ReservationList[i][5]) + '\n'
 
     #持越しループ処理
     CarryOverMsg = ''
@@ -95,12 +102,18 @@ def StatusMake():
             #メンバー名の取得
             MemberName = SQLInstance.FindMemberMemberid(SQLInstance.CarryOver[i][1])[0][1]
 
+            if SQLInstance.CarryOver[i][5] == -1:
+                damage = 'ワンパン'
+            else:
+                damage = str(SQLInstance.CarryOver[i][5])
+
             CarryOverMsg += '('+str(SQLInstance.CarryOver[i][0])+')' +\
                             str(MemberName) + ' '+\
                             str(SQLInstance.CarryOver[i][2]) + 'ボス ' +\
-                            str(SQLInstance.CarryOver[i][3]) + '秒 '+\
+                            str(SQLInstance.CarryOver[i][3]) + 's '+\
                             str(SQLInstance.CarryOver[i][4]) +\
-                            ':'+str(SQLInstance.CarryOver[i][5]) + '\n'
+                            damage + '万' +\
+                            ':'+str(SQLInstance.CarryOver[i][6]) + '\n'
 
     #段階処理，周数処理
     lap = SQLInstance.laps
@@ -115,8 +128,19 @@ def StatusMake():
     else:
         LapMsg = str(lap)+'周目 5段階目'
 
+    #ボスの残HP
+    RHPData = ''
+    BossHPData = SQLInstance.ViewBossHP()
+    for data in BossHPData:
+        if data[2] == -1:
+            RemainHP = '討伐済'
+        else:
+            RemainHP = str(data[2])+'/'+str(data[3])
+
+        RHPData += '('+str(data[0])+')'+data[1]+' '+RemainHP+'\n'
+
     #終わり，返す
-    return RemainTotsu, ReservationMsg, CarryOverMsg, LapMsg, RemainMain
+    return RemainTotsu, ReservationMsg, CarryOverMsg, LapMsg, RHPData
 
 def EndGame():
     #現在時刻を取得
@@ -132,6 +156,7 @@ def EndGame():
 
     #凸数，予約のリセット
     SQLInstance.EndGame()
+    print('リセットしました')
 
     #メッセージを投稿するかどうか
     if StatusData[4] < 45:

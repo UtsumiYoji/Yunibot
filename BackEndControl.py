@@ -63,14 +63,24 @@ def UpdateAdmin(MsgDiscord, Memberid):
     return '指定されたメンバーを進行役にしました'
 
 #凸の予約
-def Reservation(BossNo, lap, comment, discord):
+def Reservation(msg, discord):
+    #投稿されたメッセージにコメントないなら適当にうめる
+    if len(msg) == 4:
+        msg.append('')
+
     #BossNoが適切な範囲内か
-    if not (0 < int(BossNo) < 6):
+    if not (0 < int(msg[1]) < 6):
         return '予約対象のボスは数値1~5で指定してください'
-    
-    #周回数的に予約できる範囲か
-    if int(lap) < SQLInstance.laps:
-        return '何週目の指定が不適切です'
+
+    #パーティの判断
+    if msg[2] not in ['物理', '魔法', 'ニャル']:
+        return '編成を認識できませんでした\n物理・魔法・ニャルのいずれかを入力して下さい'
+
+    #ワンパンかどうかの判断
+    if msg[3] == 'ワンパン':
+        msg[3] = -1
+    else:
+        msg[3] = int(msg[3].replace('万', '')) 
 
     #対象のメンバーを検索
     Data = SQLInstance.FindMemberDiscord(discord)
@@ -78,8 +88,8 @@ def Reservation(BossNo, lap, comment, discord):
         return '登録されていないメンバーです'
 
     #予約処理
-    SQLInstance.Reservation(Data[0][0], BossNo, lap, comment)
-    return (str(lap)+'週目'+str(BossNo)+'ボスへの予約を受け付けました')
+    SQLInstance.Reservation(Data[0][0], msg[1], msg[2], msg[3], msg[4])
+    return (str(msg[1])+'ボスへの予約を受け付けました')
 
 #本線開始宣言
 def StartAtk(discord, BossNo):
@@ -118,14 +128,18 @@ def EndAtk(discord, msg):
         return '本戦開始宣言が行われていません'
     
     #ダメージの認識
-    damege = msg[1].replace('万', '')
-    if damege == '〆':
-        damege = '〆'
-    elif damege.isdecimal():
-        damege = int(damege)
-        #現在の
+    damage = msg[1].replace('万', '')
+    if (damage == '〆') or (damage == '-1'):
+        #死亡は-1
+        SQLInstance.FixBossHP(TotsuData[0][2], -1)
     else:
-        return '〆または与えたダメージを入力してください'
+        damage = int(damage)
+        #書き込まれたダメージ数が残HPと比較して正しいか
+        if damage > SQLInstance.SelectBossHP(TotsuData[0][2]):
+            return 'ダメージ数がボスの残HPを超えています'
+        
+        #ダメージをデータベースに反映
+        SQLInstance.DamageBoss(TotsuData[0][2], damage)
 
     #持越しかどうか判定
     CoData = SQLInstance.FindCarryOverMemberid(MemberData[0][0])
@@ -184,18 +198,28 @@ def DelReservation(discord, Reservationid):
     return '予約の削除は進行役または本人のみが行えます'
 
 #持越しの登録
-def CarryOver(BossNo, RemainSecond, party, comment, discord):
+def CarryOver(msg, discord):
+    #コメントの有無確認
+    if len(msg) == 5:
+        msg.append('')
+
     #BossNoが適切な範囲内か
-    if not (0 < int(BossNo) < 6):
+    if not (0 < int(msg[1]) < 6):
         return '予約対象のボスは数値1~5で指定してください'
     
     #残り秒数が適切か
-    if not (20 < int(RemainSecond) < 91):
+    if not (20 < int(msg[2]) < 91):
         return '持越し秒数は21~90秒の間で入力して下さい'
 
     #パーティが適切か
-    if party not in ['物理', '魔法', 'ニャル']:
+    if msg[3] not in ['物理', '魔法', 'ニャル']:
         return '編成を認識できませんでした\n物理・魔法・ニャルのいずれかを入力して下さい'
+
+    #ダメージの判定
+    if msg[4] == 'ワンパン':
+        damage = -1
+    else:
+        damage = int(msg[4].replace('万', ''))
 
     #対象のメンバーを検索
     MemberData = SQLInstance.FindMemberDiscord(discord)
@@ -210,7 +234,7 @@ def CarryOver(BossNo, RemainSecond, party, comment, discord):
     
     #持越しの登録
     SQLInstance.AddCarryOver(\
-        MemberData[0][0], int(BossNo), int(RemainSecond), party, comment)    
+        MemberData[0][0], int(msg[1]), int(msg[2]), msg[3], damage, msg[5])    
     return '持越しを登録しました'
 
 #持越しの削除
@@ -232,3 +256,66 @@ def DelCarryOver(discord, CarryOverid):
     
     #削除できないよ…
     return '持越し状態の削除は進行役または本人のみが行えます'
+
+#ボスの名前の設定
+def RegBossName(msg):
+    #ボスのNoが適切か
+    BossNo = int(msg[2])
+    if not 0 < BossNo < 6:
+        return 'ボスは数値1~5で指定してください'
+
+    SQLInstance.RegBossName(BossNo, msg[3])
+    return '名前を登録しました'
+
+#ボスのHPの設定
+def RegBossHP(msg):
+    #ボスのNoが適切か
+    BossNo = int(msg[2])
+    if not 0 < BossNo < 6:
+        return 'ボスは数値1~5で指定してください'
+
+    SQLInstance.RegBossHP(BossNo, int(msg[3]))
+    return '最大HPを登録しました'
+
+#ボスHPの強制変更
+def FixBossHP(msg):
+    #ボスのNoが適切か
+    BossNo = int(msg[2])
+    if not 0 < BossNo < 6:
+        return 'ボスは数値1~5で指定してください'
+    
+    #与えられたHP数が適切か
+    NewHP = int(msg[3].replace('万', ''))
+    if SQLInstance.SelectBossMaxHP(BossNo) < NewHP:
+        return 'ボスの最大HPを超える値を設定しようとしています'
+    
+    SQLInstance.FixBossHP(BossNo, NewHP)
+
+    #応答メッセージの作成
+    if NewHP == -1:
+        return (str(BossNo)+'ボスを討伐済みに設定しました')
+    else:
+        return (str(BossNo)+'ボスのHPを'+str(NewHP)+'万に設定しました')
+
+#周数の増加
+def LapChange():
+    #現在の周数を取得
+    NowLap = int(SQLInstance.laps)
+
+    #データベース操作
+    SQLInstance.LapChange(NowLap+1)
+    SQLInstance.ResetBossHP()
+
+    #予約者一覧のdiscordidを取得
+    DiscordData = list(set(SQLInstance.ReservationDiscordId()))
+    
+    #予約なしなら終わり
+    if len(DiscordData) == 0:
+        return (str(NowLap+1) + '周目に到達しました')
+
+    #メンションできる形式にして繋げる
+    result = str(NowLap+1) + '周目に到達しました\n**予約者一覧**'
+    for i in range(len(DiscordData)):
+        result += ('\n<@' + str(DiscordData[i]) + '>')
+    
+    return result
