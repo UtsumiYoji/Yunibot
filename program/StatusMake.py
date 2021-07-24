@@ -70,11 +70,12 @@ def StatusMake():
     del RemainTotsu3, RemainTotsu2, RemainTotsu1, RemainTotsu0
 
     #予約ループ処理
-    ReservationMsg = ''
     if len(SQLInstance.ReservationList) == 0:
         ReservationMsg = '予約なし'
 
     else:
+        ReservationMsg = ['**1ボス予約**', '\n**2ボス予約**', '\n**3ボス予約**', '\n**4ボス予約**', '\n**5ボス予約**']
+        #予約の数だけループ
         for i in range(len(SQLInstance.ReservationList)):
             #メンバー名の取得
             MemberName = SQLInstance.FindMemberMemberid(SQLInstance.ReservationList[i][1])[0][1]
@@ -83,37 +84,44 @@ def StatusMake():
             if SQLInstance.ReservationList[i][3] == -1:
                 damage = 'ワンパン'
             else:
-                damage = str(SQLInstance.ReservationList[i][3])
-
-            ReservationMsg += '('+str(SQLInstance.ReservationList[i][0])+')' +\
-                                str(MemberName) + ' '+\
-                                str(SQLInstance.ReservationList[i][2]) + 'ボス' +\
-                                SQLInstance.ReservationList[i][4] +\
-                                ' ' + damage +\
-                                ':'+str(SQLInstance.ReservationList[i][5]) + '\n'
+                damage = str(SQLInstance.ReservationList[i][3]) + '万'
+            
+            #表示用メッセージの作成
+            msg = '\n('+str(SQLInstance.ReservationList[i][0])+')' + str(MemberName) + ' '+\
+                    SQLInstance.ReservationList[i][4] + damage + ':'+str(SQLInstance.ReservationList[i][5])
+            
+            #ボスNoの場所に入れ込む
+            ReservationMsg[SQLInstance.ReservationList[i][2]-1] += msg
+        
+        #リストを一つに繋げる
+        ReservationMsg = ''.join(ReservationMsg)
 
     #持越しループ処理
-    CarryOverMsg = ''
     if len(SQLInstance.CarryOver) == 0:
         CarryOverMsg = '持越し記録なし'
 
     else:
+        CarryOverMsg = ['**1ボス持越し**', '\n**2ボス持越し**', '\n**3ボス持越し**', '\n**4ボス持越し**', '\n**5ボス持越し**']
         for i in range(len(SQLInstance.CarryOver)):
             #メンバー名の取得
             MemberName = SQLInstance.FindMemberMemberid(SQLInstance.CarryOver[i][1])[0][1]
 
+            #もしダメージ-1だったらワンパン
             if SQLInstance.CarryOver[i][5] == -1:
                 damage = 'ワンパン'
             else:
-                damage = str(SQLInstance.CarryOver[i][5])
+                damage = str(SQLInstance.CarryOver[i][5]) + '万'
 
-            CarryOverMsg += '('+str(SQLInstance.CarryOver[i][0])+')' +\
-                            str(MemberName) + ' '+\
-                            str(SQLInstance.CarryOver[i][2]) + 'ボス ' +\
-                            str(SQLInstance.CarryOver[i][3]) + 's '+\
-                            str(SQLInstance.CarryOver[i][4]) +\
-                            damage + '万' +\
-                            ':'+str(SQLInstance.CarryOver[i][6]) + '\n'
+            #表示用メッセージの作成
+            msg = '\n('+str(SQLInstance.CarryOver[i][0])+')' + str(MemberName) + ' ' +\
+                    str(SQLInstance.CarryOver[i][3]) + 's '+ str(SQLInstance.CarryOver[i][4]) + damage +\
+                    ':'+str(SQLInstance.CarryOver[i][6])
+            
+            #ボスNoの場所に入れ込む
+            CarryOverMsg[SQLInstance.CarryOver[i][2]-1] += msg
+        
+        #リストを一つに繋げる
+        CarryOverMsg = ''.join(CarryOverMsg)
 
     #段階処理，周数処理
     lap = SQLInstance.laps

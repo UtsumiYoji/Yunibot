@@ -3,15 +3,18 @@ import asyncio
 import StatusMake
 import BackEndControl
 
-client = discord.Client()
+import configparser
 
-StatusChannel = 761666636897452103
-ReaderChannel = 772743357528801341
-CommandChannel = 764803209066971156
+#botAPIキーなどの設定を読み込む
+ConfigIns = configparser.ConfigParser()
+ConfigIns.read('setting.ini', encoding='utf-8')
+#ConfigIns.read('setting_test.ini', encoding='utf-8')
+
+client = discord.Client()
 
 #予約状況を表示してくれる
 async def ReloadStatus():
-    channel = client.get_channel(StatusChannel)
+    channel = client.get_channel(int(ConfigIns['discord']['StatusChannel']))
     await channel.purge(limit=None)
 
     StatusData = StatusMake.StatusMake()
@@ -28,12 +31,12 @@ async def loop():
         StatusData = StatusMake.EndGame()
         if not StatusData is False:
             #凸漏れ通知
-            channel = client.get_channel(ReaderChannel)
+            channel = client.get_channel(int(ConfigIns['discord']['ReaderChannel']))
             embed = discord.Embed(title='凸漏れ通知', description=StatusData, color=0xff0000)
             await channel.send(embed=embed)
 
             #日付変更通知
-            channel = client.get_channel(CommandChannel)
+            channel = client.get_channel(int(ConfigIns['discord']['CommandChannel']))
             await channel.send('クラバトの日付が変わりました！\n前日に行った予約状況等は全て初期化されています')
             await ReloadStatus()
     
@@ -42,7 +45,7 @@ async def loop():
 @client.event
 async def on_ready():
     await client.change_presence(
-        activity=discord.Game(name='Running on Ver.2.1.0.0')
+        activity=discord.Game(name='Running on Ver.2.3.0.0')
     )
     await loop()
 
@@ -128,6 +131,13 @@ async def on_message(msg):
         await msg.channel.send(Rmsg)
         await ReloadStatus()
 
+    #持越し戦終了
+    elif msg.content.startswith('.endco'):
+        Smsg = msg.content.split()
+        Rmsg = BackEndControl.EndCo(msg.author.id, Smsg)
+        await msg.channel.send(Rmsg)
+        await ReloadStatus()
+
     #本線終了
     elif msg.content.startswith('.end'):
         Smsg = msg.content.split()
@@ -152,6 +162,7 @@ async def on_message(msg):
         Smsg = msg.content.split()
         Rmsg = BackEndControl.SQLInstance.LapChange(int(Smsg[2]))
         await msg.channel.send('現在の周数を'+str(Rmsg)+'周目に設定しました')
+        await ReloadStatus()
 
     #ボスの名前の登録
     elif msg.content.startswith('.boss name'):
@@ -174,4 +185,4 @@ async def on_message(msg):
         await msg.channel.send(Rmsg)
         await ReloadStatus()
 
-client.run('NzU2NTM3NDE3NzY2NDA0MTM4.X2TSYA.UgqxCj3h8yg-oq4RbtekkgRLMQY')
+client.run(ConfigIns['API']['token_key'])

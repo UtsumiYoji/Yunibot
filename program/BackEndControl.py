@@ -102,11 +102,13 @@ def StartAtk(discord, BossNo):
     if len(MemberData) == 0:
         return '登録されていないメンバーです'
 
-    #既に本戦中じゃないか，残り凸があるのか
+    #残り凸があるのか
     TotsuData = SQLInstance.FindTotsuMemberid(MemberData[0][0])
     CoData = SQLInstance.FindCarryOverMemberid(MemberData[0][0])
     if ((TotsuData[0][1] == 0) and (len(CoData) == 0)):
-        return '既に3凸済みで、持越しも登録されていません'
+        return '既に3凸済みです\n持越しも未登録です'
+
+    #すでに本戦済み
     if not TotsuData[0][2] == 0:
         SQLInstance.atk(MemberData[0][0], BossNo)
         return ('現在'+str(TotsuData[0][2])+'ボスと本戦中です\n本戦中の対象を'+str(BossNo)+'に切り替えました')
@@ -114,6 +116,39 @@ def StartAtk(discord, BossNo):
     #凸状態に変更
     SQLInstance.atk(MemberData[0][0], BossNo)
     return '本戦開始を受け付けました'
+
+#持越し戦終了
+def EndCo(discord, msg):
+    #対象のメンバーを検索
+    MemberData = SQLInstance.FindMemberDiscord(discord)
+    if len(MemberData) == 0:
+        return '登録されていないメンバーです'
+
+    #既に本戦開始宣言をしているのか
+    TotsuData = SQLInstance.FindTotsuMemberid(MemberData[0][0])
+    if TotsuData[0][2] == 0:
+        return '本戦開始宣言が行われていません'
+
+    #ダメージの認識
+    damage = msg[1].replace('万', '')
+    if (damage == '〆') or (damage == '-1'):
+        #死亡は-1
+        SQLInstance.FixBossHP(TotsuData[0][2], -1)
+    else:
+        damage = int(damage)
+        #書き込まれたダメージ数が残HPと比較して正しいか
+        if damage > SQLInstance.SelectBossHP(TotsuData[0][2]):
+            return 'ダメージ数がボスの残HPを超えています\nボスを討伐した場合は .end 〆 と入力してください'
+        
+        #ダメージをデータベースに反映
+        SQLInstance.DamageBoss(TotsuData[0][2], damage)
+    
+    #凸完了処理
+    CoData = SQLInstance.FindCarryOverMemberid(MemberData[0][0])
+    SQLInstance.end(MemberData[0][0])
+    SQLInstance.DoneCarryOver(CoData[0][0])
+
+    return '持越しの消化として処理しました'
 
 #本戦終了宣言(持越し消化宣言)
 def EndAtk(discord, msg):
@@ -136,17 +171,10 @@ def EndAtk(discord, msg):
         damage = int(damage)
         #書き込まれたダメージ数が残HPと比較して正しいか
         if damage > SQLInstance.SelectBossHP(TotsuData[0][2]):
-            return 'ダメージ数がボスの残HPを超えています'
+            return 'ダメージ数がボスの残HPを超えています\nボスを討伐した場合は .end 〆 と入力してください'
         
         #ダメージをデータベースに反映
         SQLInstance.DamageBoss(TotsuData[0][2], damage)
-
-    #持越しかどうか判定
-    CoData = SQLInstance.FindCarryOverMemberid(MemberData[0][0])
-    if not len(CoData) == 0:
-        SQLInstance.DoneCarryOver(CoData[0][0])
-        SQLInstance.end(MemberData[0][0])
-        return '持越しの完了として処理しました'
 
     #凸完了処理
     SQLInstance.end(MemberData[0][0])
@@ -226,11 +254,10 @@ def CarryOver(msg, discord):
     if len(MemberData) == 0:
         return '登録されていないメンバーです'
 
-    #持越しが登録されていないか判定
+    #持越しが3件以上登録されていないか判定
     CoData = SQLInstance.FindCarryOverMemberid(MemberData[0][0])
-    if not len(CoData) == 0:
-        #登録されていたら完了したことにしてしまう
-        SQLInstance.DoneCarryOver(CoData[0][0])
+    if len(CoData) == 3:
+        return '既に3件の持越し登録がされています\n.delco で既存の登録を削除してください'
     
     #持越しの登録
     SQLInstance.AddCarryOver(\

@@ -316,8 +316,8 @@ class SQLControl:
     #持ち越しの登録
     def AddCarryOver(self, Memberid, BossNo, RemainSecond, party, damage, comment):
         self.cur.execute(
-            "insert into CarryOver(Memberid, BossNo, RemainSecond, party, comment) \
-                values("+str(Memberid)+","+str(BossNo)+","+str(RemainSecond)+",'"+party+"','"+comment+"')"
+            "insert into CarryOver(Memberid, BossNo, RemainSecond, party, damage, comment) \
+                values("+str(Memberid)+","+str(BossNo)+","+str(RemainSecond)+",'"+party+"','"+str(damage)+"','"+comment+"')"
         )
         self.cur.execute(
             "select * from CarryOver where Done = 0"
@@ -360,6 +360,8 @@ class SQLControl:
         )
         SQLControl.laps = int(self.cur.fetchall()[0][1])
 
+        return SQLControl.laps
+
     #リセット
     def EndGame(self):
         self.cur.execute(
@@ -386,5 +388,3 @@ class SQLControl:
         result = self.cur.fetchall()
         result = [i[0] for i in result]
         return result
-
-SQLControl().MakeTable()
