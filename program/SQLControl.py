@@ -113,7 +113,7 @@ class SQLControl:
 
         #ボスHPテーブル
         self.cur.execute(
-                "create table BossHP(id integer primary key autoincrement, name string, hp integer, maxhp integer)"
+                "create table BossHP(id integer primary key autoincrement, name string, hp integer, maxhp integer, body integer)"
             )
         for i in range(1, 6):
             self.cur.execute(

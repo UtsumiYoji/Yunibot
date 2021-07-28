@@ -184,5 +184,10 @@ async def on_message(msg):
         Rmsg = BackEndControl.FixBossHP(Smsg)
         await msg.channel.send(Rmsg)
         await ReloadStatus()
+    
+    #無理やり凸数をリセット
+    elif msg.content == '.reset':
+        BackEndControl.SQLInstance.EndGame()
+        await ReloadStatus()
 
 client.run(ConfigIns['API']['token_key'])

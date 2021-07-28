@@ -148,7 +148,7 @@ def StatusMake():
         RHPData += '('+str(data[0])+')'+data[1]+' '+RemainHP+'\n'
 
     #終わり，返す
-    return RemainTotsu, ReservationMsg, CarryOverMsg, LapMsg, RHPData
+    return RemainTotsu, ReservationMsg, CarryOverMsg, LapMsg, RHPData, RemainMain
 
 def EndGame():
     #現在時刻を取得
@@ -164,8 +164,7 @@ def EndGame():
 
     #凸数，予約のリセット
     SQLInstance.EndGame()
-    print('リセットしました')
 
     #メッセージを投稿するかどうか
-    if StatusData[4] < 45:
+    if StatusData[5] < 45:
         return StatusData[0]
